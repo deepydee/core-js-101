@@ -20,10 +20,15 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  return {
+    width,
+    height,
+    getArea() {
+      return this.width * this.height;
+    },
+  };
 }
-
 
 /**
  * Returns the JSON representation of specified object
@@ -35,9 +40,9 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
-}
+const getJSON = (obj) => (
+  JSON.stringify(obj)
+);
 
 
 /**
@@ -51,8 +56,13 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const data = JSON.parse(json);
+  const obj = Object.create(proto);
+
+  Object.assign(obj, data);
+
+  return obj;
 }
 
 
@@ -111,35 +121,114 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  selectorParts: [],
+  orderValidationParts: [],
+  order: ['element', 'id', 'class', 'attr', 'pseudoClass', 'pseudoElement'],
+  elementCount: 0,
+  idCount: 0,
+  pseudoElementCount: 0,
+
+  validateOrder(part) {
+    const lastPart = this.orderValidationParts.at(-1);
+    const lastIndex = this.order.indexOf(lastPart);
+    const currentIndex = this.order.indexOf(part);
+
+    if (lastIndex > currentIndex) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    this.validateOrder('element');
+    if (this.elementCount > 0) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, value];
+    builder.orderValidationParts = [...this.orderValidationParts, 'element'];
+    builder.elementCount = this.elementCount + 1;
+    return builder;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    this.validateOrder('id');
+    if (this.idCount > 0) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, `#${value}`];
+    builder.orderValidationParts = [...this.orderValidationParts, 'id'];
+    builder.idCount = this.idCount + 1;
+    return builder;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.validateOrder('class');
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, `.${value}`];
+    builder.orderValidationParts = [...this.orderValidationParts, 'class'];
+    return builder;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.validateOrder('attr');
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, `[${value}]`];
+    builder.orderValidationParts = [...this.orderValidationParts, 'attr'];
+    return builder;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.validateOrder('pseudoClass');
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, `:${value}`];
+    builder.orderValidationParts = [...this.orderValidationParts, 'pseudoClass'];
+    return builder;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    this.validateOrder('pseudoElement');
+    if (this.pseudoElementCount > 0) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...this.selectorParts, `::${value}`];
+    builder.orderValidationParts = [...this.orderValidationParts, 'pseudoElement'];
+    builder.pseudoElementCount = this.pseudoElementCount + 1;
+    return builder;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const builder = Object.create(cssSelectorBuilder);
+    builder.selectorParts = [...selector1.selectorParts, ` ${combinator} `, ...selector2.selectorParts];
+    return builder;
+  },
+
+  stringify() {
+    return this.selectorParts.join('');
   },
 };
 
+// const builder = cssSelectorBuilder;
+// console.log(builder.id('id').element('div'));
+// console.log(builder.id('main').class('container').class('editable').stringify());
+// console.log(builder.element('a').attr('href$=".png"').pseudoClass('focus').stringify());
+// console.log(builder.combine(
+//   builder.element('div').id('main').class('container').class('draggable'),
+//   '+',
+//   builder.combine(
+//     builder.element('table').id('data'),
+//     '~',
+//     builder.combine(
+//       builder.element('tr').pseudoClass('nth-of-type(even)'),
+//       ' ',
+//       builder.element('td').pseudoClass('nth-of-type(even)'),
+//     ),
+//   ),
+// ).stringify());
 
 module.exports = {
   Rectangle,
