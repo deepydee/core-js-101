@@ -23,9 +23,7 @@
  *   getComposition(Math.sin, Math.asin)(x) => Math.sin(Math.asin(x))
  *
  */
-function getComposition(/* f, g */) {
-  throw new Error('Not implemented');
-}
+const getComposition = (f, g) => (x) => f(g(x));
 
 
 /**
@@ -44,10 +42,7 @@ function getComposition(/* f, g */) {
  *   power05(16) => 4
  *
  */
-function getPowerFunction(/* exponent */) {
-  throw new Error('Not implemented');
-}
-
+const getPowerFunction = (exponent) => (x) => x ** exponent;
 
 /**
  * Returns the polynom function of one argument based on specified coefficients.
@@ -62,9 +57,10 @@ function getPowerFunction(/* exponent */) {
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-function getPolynom() {
+
+const getPolynom = () => {
   throw new Error('Not implemented');
-}
+};
 
 
 /**
@@ -81,8 +77,19 @@ function getPolynom() {
  *   ...
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
+function memoize(func) {
+  const cache = new Map();
+
+  return () => {
+    if (cache.has(func)) {
+      return cache.get(func);
+    }
+
+    const result = func();
+    cache.set(func, result);
+
+    return result;
+  };
 }
 
 
@@ -101,9 +108,33 @@ function memoize(/* func */) {
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+// function retry(/* func, attempts */) {
+//   throw new Error('Not implemented');
+// }
+
+function retry(func, attempts) {
+  // eslint-disable-next-line consistent-return
+  return () => {
+    for (let i = 0; i < attempts; i += 1) {
+      try {
+        return func();
+      } catch (error) {
+        if (i === attempts - 1) {
+          throw error;
+        }
+      }
+    }
+  };
 }
+
+// let attempt = 0;
+// const retryer = retry(() => {
+//   // eslint-disable-next-line no-plusplus, no-const-assign
+//   if (++attempt % 2) throw new Error('test');
+//   else return attempt;
+// }, 2);
+
+// console.log(retryer());
 
 
 /**
@@ -147,10 +178,10 @@ function logger(/* func, logFunc */) {
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(/* fn, ...args1 */) {
-  throw new Error('Not implemented');
-}
 
+function partialUsingArguments(fn, ...args1) {
+  return (...args2) => fn(...args1, ...args2);
+}
 
 /**
  * Returns the id generator function that returns next integer starting
@@ -169,9 +200,20 @@ function partialUsingArguments(/* fn, ...args1 */) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let conter = startFrom;
+
+  // eslint-disable-next-line no-plusplus
+  return () => conter++;
 }
+
+// const getId4 = getIdGeneratorFunction(4);
+// const getId10 = getIdGeneratorFunction(10);
+
+// console.log(getId4());
+// console.log(getId4());
+// console.log(getId10());
+// console.log(getId10());
 
 
 module.exports = {
