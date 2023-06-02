@@ -58,10 +58,24 @@ const getPowerFunction = (exponent) => (x) => x ** exponent;
  *   getPolynom()      => null
  */
 
-const getPolynom = () => {
-  throw new Error('Not implemented');
+const getPolynom = (...coefficients) => {
+  if (coefficients.length === 0) {
+    return null;
+  }
+
+  return (x) => {
+    const data = [...coefficients].reverse();
+    let result = data[0];
+
+    for (let i = 1; i < data.length; i += 1) {
+      result += data[i] * (x ** i);
+    }
+
+    return result;
+  };
 };
 
+// console.log(getPolynom(2, 3, 5)(2));
 
 /**
  * Memoizes passed function and returns function
@@ -160,10 +174,21 @@ function retry(func, attempts) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
-}
+function logger(func, logFunc) {
+  // eslint-disable-next-line func-names
+  return function (...args) {
+    const argString = args.map((arg) => JSON.stringify(arg)).join(',');
+    const functionName = func.name || 'anonymous';
 
+    logFunc(`${functionName}(${argString}) starts`);
+
+    const result = func.apply(this, args);
+
+    logFunc(`${functionName}(${argString}) ends`);
+
+    return result;
+  };
+}
 
 /**
  * Return the function with partial applied arguments
